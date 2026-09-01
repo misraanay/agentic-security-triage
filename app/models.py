@@ -15,13 +15,11 @@ class ScanStatus(str, Enum):
 class Scan(Base):
     __tablename__ = "scans"
     scan_id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    status: Mapped[ScanStatus] = mapped_column(sa.Enum(ScanStatus), nullable=False, default=ScanStatus.QUEUED)
+    status: Mapped[ScanStatus] = mapped_column(sa.Enum(ScanStatus, name="scan_status", values_callable=lambda x: [e.value for e in x]), nullable=False, default=ScanStatus.QUEUED)
     url: Mapped[str] = mapped_column(sa.String, nullable=False)
     created_at: Mapped[dt.datetime] = mapped_column(
         sa.DateTime(timezone=True),
         nullable=False,
         server_default=sa.func.now()
      )
-
-Base.metadata.create_all(bind=engine)
 
