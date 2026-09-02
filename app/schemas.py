@@ -1,6 +1,7 @@
 import uuid
 from pydantic import BaseModel, AnyHttpUrl
 from uuid import uuid4, UUID
+from datetime import datetime as dt
 
 class ScanRequest(BaseModel):
     url: AnyHttpUrl
@@ -8,5 +9,6 @@ class ScanRequest(BaseModel):
 
 class ScanResponse(BaseModel):
     scan_id: UUID
-    scan_completion_status: str = "queued"
-    scan_url: AnyHttpUrl
+    status: str
+    url: AnyHttpUrl
+    created_at: dt
