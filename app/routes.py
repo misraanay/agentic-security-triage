@@ -5,6 +5,7 @@ from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Scan, ScanStatus
+from sqlalchemy import select
 
 router = APIRouter()
 
@@ -18,9 +19,10 @@ async def scan(scan: ScanRequest, db: Session = Depends(get_db)):
 
 @router.get("/scan/{scan_id}", response_model=ScanResponse)
 async def get_scan(scan_id: UUID, db: Session = Depends(get_db)):
-    scan_id = db.query(Scan).filter(Scan.scan_id == scan_id).first()
-    if not scan_id:
+    query = select(Scan).where(Scan.scan_id == scan_id)
+    record = db.execute(query).scalar_one_or_none()
+    if not record:
         raise HTTPException(status_code=404, detail="Scan not found")
-    return scan_id
+    return record
 
 
