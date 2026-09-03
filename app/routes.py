@@ -11,7 +11,7 @@ router = APIRouter()
 
 @router.post("/scan", response_model=ScanResponse)
 async def scan(scan: ScanRequest, db: Session = Depends(get_db)):
-    new_scan = Scan(url = scan.url)
+    new_scan = Scan(url = str(scan.url))
     db.add(new_scan)
     db.commit()
     db.refresh(new_scan)

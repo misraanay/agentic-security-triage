@@ -23,3 +23,5 @@ class Scan(Base):
         server_default=sa.func.now()
      )
 
+
+

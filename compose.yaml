@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_DB: agentic_security_triage
+    volumes:
+      - db_data:/var/lib/postgresql
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+psycopg://user:devpassword@db:5432/agentic_security_triage
+    depends_on:
+      - db
+volumes:
+  db_data:
+
+
+
