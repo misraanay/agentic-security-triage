@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Scan, ScanStatus
 from sqlalchemy import select
+from app.tasks import process_scan
 
 router = APIRouter()
 
@@ -15,8 +16,10 @@ async def scan(scan: ScanRequest, db: Session = Depends(get_db)):
     db.add(new_scan)
     db.commit()
     db.refresh(new_scan)
-    return new_scan
+    # message enqueue redis
+    process_scan.delay(scan_id=new_scan.scan_id)
 
+    return new_scan
 @router.get("/scan/{scan_id}", response_model=ScanResponse)
 async def get_scan(scan_id: UUID, db: Session = Depends(get_db)):
     query = select(Scan).where(Scan.scan_id == scan_id)
