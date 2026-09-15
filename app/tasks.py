@@ -6,6 +6,7 @@ from app.models import ScanStatus
 import os
 import tempfile
 import subprocess
+import json
 
 @app.task()
 def process_scan(scan_id: UUID):
@@ -22,6 +23,12 @@ def process_scan(scan_id: UUID):
         with tempfile.TemporaryDirectory() as tmpdir:
             try:
                 subprocess.run(["git", "clone", "--depth", "1", url, tmpdir], check=True)
+                result = subprocess.run(
+                    ["semgrep", "--config=auto", "--json", tmpdir],
+                    capture_output=True,
+                    text=True
+                )
+                data = json.loads(result.stdout)
             except subprocess.CalledProcessError as e:
                 success = False
         if success:
