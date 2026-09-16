@@ -2,7 +2,7 @@ from app.models import Scan
 from app.database import SessionLocal
 from uuid import UUID
 from app.celery_app import app
-from app.models import ScanStatus
+from app.models import Scan, ScanStatus, Finding
 import os
 import tempfile
 import subprocess
@@ -29,6 +29,19 @@ def process_scan(scan_id: UUID):
                     text=True
                 )
                 data = json.loads(result.stdout)
+                findings = data["results"]
+                for finding in findings:
+                    new_finding = Finding(
+                        scan_id=scan_id,
+                        check_id=finding["check_id"],
+                        path=os.path.relpath(finding["path"], tmpdir),
+                        start_line=finding["start"]["line"],
+                        end_line=finding["end"]["line"],
+                        message=finding["extra"]["message"],
+                        severity=finding["extra"]["severity"],
+                    )
+                    db.add(new_finding)
+                db.commit()
             except subprocess.CalledProcessError as e:
                 success = False
         if success:

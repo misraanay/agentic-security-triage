@@ -3,7 +3,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column
 import datetime as dt
 from uuid import UUID, uuid4
-
+from sqlalchemy import String, Integer, Text, ForeignKey
 from enum import Enum
 
 class ScanStatus(str, Enum):
@@ -22,6 +22,26 @@ class Scan(Base):
         nullable=False,
         server_default=sa.func.now()
      )
+
+class Finding(Base):
+    __tablename__ = "findings"
+
+    finding_id: Mapped[UUID] = mapped_column(
+        primary_key=True,
+        default=uuid4
+    )
+
+    scan_id: Mapped[UUID] = mapped_column(
+        ForeignKey("scans.scan_id"),
+        nullable=False
+    )
+
+    check_id: Mapped[str] = mapped_column(String, nullable=False)
+    path: Mapped[str] = mapped_column(String, nullable=False)
+    start_line: Mapped[int] = mapped_column(Integer, nullable=False)
+    end_line: Mapped[int] = mapped_column(Integer, nullable=False)
+    message: Mapped[str] = mapped_column(Text, nullable=False)
+    severity: Mapped[str] = mapped_column(String, nullable=False)
 
 
 
