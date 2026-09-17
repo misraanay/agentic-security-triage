@@ -17,6 +17,8 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql+psycopg://user:devpassword@db:5432/agentic_security_triage
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - MODEL=${MODEL}
     depends_on:
       - db
       - redis
@@ -26,6 +28,8 @@ services:
     command: celery -A app.celery_app:app worker --loglevel=INFO 
     environment:
       - DATABASE_URL=postgresql+psycopg://user:devpassword@db:5432/agentic_security_triage
+      - GROQ_API_KEY=${GROQ_API_KEY}
+      - MODEL=${MODEL}
     depends_on:
       - redis
       - db

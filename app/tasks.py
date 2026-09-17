@@ -1,6 +1,3 @@
-from langgraph.graph import StateGraph
-
-from app.models import Scan
 from app.database import SessionLocal
 from uuid import UUID
 from app.celery_app import app
@@ -9,7 +6,8 @@ import os
 import tempfile
 import subprocess
 import json
-from app.agent.graph import security_graph, SecurityState
+from app.agent.graph import security_graph, SecurityState, FindingEvidence
+
 
 @app.task()
 def process_scan(scan_id: UUID):
@@ -48,11 +46,20 @@ def process_scan(scan_id: UUID):
                     saved_findings.append(new_finding)
                 db.commit()
 
-                for finding in saved_findings[:1]:
+                for db_finding in saved_findings[:1]:
+                    finding_dict : FindingEvidence = {
+                        "check_id": db_finding.check_id,
+                        "path" : db_finding.path,
+                        "start_line" : db_finding.start_line,
+                        "end_line" : db_finding.end_line,
+                        "message" : db_finding.message,
+                        "severity" : db_finding.severity,
+                    }
                     init_state = SecurityState(
-                        scan_id=finding.scan_id,
-                        finding_id=finding.finding_id,
+                        scan_id=db_finding.scan_id,
+                        finding_id=db_finding.finding_id,
                         repo_path=tmpdir,
+                        finding=finding_dict,
                         analysis=None,
                         relevant_files=[],
                         patch=None,
@@ -62,7 +69,7 @@ def process_scan(scan_id: UUID):
                     )
                     result = security_graph.invoke(init_state)
                     print("LangGraph result:", result)
-            except subprocess.CalledProcessError as e:
+            except subprocess.CalledProcessError:
                 success = False
         if success:
             scan.status = ScanStatus.COMPLETED
