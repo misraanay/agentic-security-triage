@@ -42,6 +42,3 @@ class Finding(Base):
     end_line: Mapped[int] = mapped_column(Integer, nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     severity: Mapped[str] = mapped_column(String, nullable=False)
-
-
-

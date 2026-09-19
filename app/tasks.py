@@ -46,7 +46,13 @@ def process_scan(scan_id: UUID):
                     saved_findings.append(new_finding)
                 db.commit()
 
-                for db_finding in saved_findings[:1]:
+                python_findings = [
+                    finding
+                    for finding in saved_findings
+                    if finding.path.endswith(".py")
+                ]
+
+                for db_finding in python_findings[:1]:
                     finding_dict : FindingEvidence = {
                         "check_id": db_finding.check_id,
                         "path" : db_finding.path,
@@ -67,8 +73,22 @@ def process_scan(scan_id: UUID):
                         validation_passed=None,
                         retry_count=0
                     )
-                    result = security_graph.invoke(init_state)
-                    print("LangGraph result:", result)
+
+                subprocess.run(
+                    [
+                        "graphify",
+                        "extract",
+                        tmpdir,
+                        "--code-only",
+                        "--no-cluster",
+                    ],
+                    check=True,
+                )
+                result = security_graph.invoke(init_state)
+                print("LangGraph result:", result)
+
+                graph_path = os.path.join(tmpdir, "graphify-out", "graph.json")
+                print("Graphify graph exists:", os.path.exists(graph_path))
             except subprocess.CalledProcessError:
                 success = False
         if success:
